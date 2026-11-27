@@ -1,0 +1,75 @@
+import { provideLucideIcons } from '@lucide/angular';
+import {
+  ArrowDownLeft, ArrowLeftRight, ArrowUpRight, Ban, Bell, CalendarDays, Check, CheckCheck,
+  ChevronDown, ChevronLeft, ChevronRight, ChevronsUpDown, CircleAlert, CircleCheck, CircleUser, ClipboardCheck,
+  ClipboardList, Clock, Droplets, Ellipsis, Eye, HandCoins, History, House,
+  Image, Layers, LoaderCircle, Menu, Minus, Package, PackageCheck, Palette,
+  PenTool, Pencil, Phone, Plus, Printer, Receipt, RotateCcw, Scissors,
+  Search, Settings, Shield, ShieldCheck, ShieldUser, Shirt, Spool, Star,
+  Trash, TriangleAlert, Truck, Upload, UserRound, Users, Wallet, X
+} from 'lucide';
+
+// solo se registran los datos de los iconos que usa la app (asi no se incluye toda la libreria)
+// en el html se usan con su nombre: <svg lucideIcon="house"></svg>
+function icono(nombre: string, nodo: any) {
+  return { name: nombre, node: nodo };
+}
+
+export const iconosApp = provideLucideIcons(
+  icono('arrow-down-left', ArrowDownLeft),
+  icono('arrow-left-right', ArrowLeftRight),
+  icono('arrow-up-right', ArrowUpRight),
+  icono('ban', Ban),
+  icono('bell', Bell),
+  icono('calendar-days', CalendarDays),
+  icono('check', Check),
+  icono('check-check', CheckCheck),
+  icono('chevron-down', ChevronDown),
+  icono('chevron-left', ChevronLeft),
+  icono('chevron-right', ChevronRight),
+  icono('chevrons-up-down', ChevronsUpDown),
+  icono('circle-alert', CircleAlert),
+  icono('circle-check', CircleCheck),
+  icono('circle-user', CircleUser),
+  icono('clipboard-check', ClipboardCheck),
+  icono('clipboard-list', ClipboardList),
+  icono('clock', Clock),
+  icono('droplets', Droplets),
+  icono('ellipsis', Ellipsis),
+  icono('eye', Eye),
+  icono('hand-coins', HandCoins),
+  icono('history', History),
+  icono('house', House),
+  icono('image', Image),
+  icono('layers', Layers),
+  icono('loader-circle', LoaderCircle),
+  icono('menu', Menu),
+  icono('minus', Minus),
+  icono('package', Package),
+  icono('package-check', PackageCheck),
+  icono('palette', Palette),
+  icono('pen-tool', PenTool),
+  icono('pencil', Pencil),
+  icono('phone', Phone),
+  icono('plus', Plus),
+  icono('printer', Printer),
+  icono('receipt', Receipt),
+  icono('rotate-ccw', RotateCcw),
+  icono('scissors', Scissors),
+  icono('search', Search),
+  icono('settings', Settings),
+  icono('shield', Shield),
+  icono('shield-check', ShieldCheck),
+  icono('shield-user', ShieldUser),
+  icono('shirt', Shirt),
+  icono('spool', Spool),
+  icono('star', Star),
+  icono('trash', Trash),
+  icono('triangle-alert', TriangleAlert),
+  icono('truck', Truck),
+  icono('upload', Upload),
+  icono('user-round', UserRound),
+  icono('users', Users),
+  icono('wallet', Wallet),
+  icono('x', X)
+);
