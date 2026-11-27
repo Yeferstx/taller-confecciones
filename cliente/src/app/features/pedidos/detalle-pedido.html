@@ -1,0 +1,205 @@
+@if (pedido(); as p) {
+  <app-encabezado titulo="Pedido" volver="/pedidos">
+    @if (abierto()) {
+      <a [routerLink]="'/pedidos/' + p.id + '/editar'" class="btn btn-secundario px-3" aria-label="Editar pedido">
+        <svg lucideIcon="pencil" class="size-5"></svg>
+        <span class="hidden sm:inline">Editar pedido</span>
+      </a>
+    }
+  </app-encabezado>
+
+  <div class="grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start">
+
+    <!-- resumen del pedido -->
+    <section class="tarjeta lg:sticky lg:top-24">
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <p class="text-2xl font-bold tracking-tight text-texto">{{ p.numero }}</p>
+        <app-estado-pedido [estado]="p.estado" [atrasado]="atrasado()" />
+      </div>
+      <div class="mt-2 flex items-start gap-2.5">
+        <svg lucideIcon="shield" class="mt-0.5 size-5 shrink-0 text-texto"></svg>
+        <div class="min-w-0">
+          <p class="text-[17px] leading-snug font-bold text-texto">{{ p.equipo }}</p>
+          <p class="text-sm text-gris">{{ p.cliente }}</p>
+        </div>
+      </div>
+
+      <div class="mt-4 grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-center gap-4">
+        <app-miniatura-prenda [imagen]="imagen()" [texto]="p.tipoPrenda" tamano="aspect-square w-full" />
+        <dl class="flex flex-col gap-3.5">
+          <div class="flex items-start gap-2.5">
+            <svg lucideIcon="shirt" class="mt-0.5 size-5 shrink-0 text-gris"></svg>
+            <div><dt class="text-xs text-gris">Cantidad</dt><dd class="font-bold text-texto">{{ p.cantidad }} {{ p.tipoPrenda.toLowerCase() }}</dd></div>
+          </div>
+          <div class="flex items-start gap-2.5">
+            <svg lucideIcon="calendar-days" class="mt-0.5 size-5 shrink-0 text-gris"></svg>
+            <div><dt class="text-xs text-gris">Entrega</dt>
+              <dd class="font-bold capitalize" [class]="{ 'text-error': atrasado(), 'text-texto': !(atrasado()) }">{{ p.fechaEntrega | fecha }}</dd>
+              <dd class="text-xs" [class]="{ 'text-error': atrasado(), 'text-gris': !(atrasado()) }">{{ p.fechaEntrega | fecha: 'entrega' }}</dd>
+            </div>
+          </div>
+          <div class="flex items-start gap-2.5">
+            <svg lucideIcon="layers" class="mt-0.5 size-5 shrink-0 text-gris"></svg>
+            <div><dt class="text-xs text-gris">Proceso actual</dt><dd class="font-bold text-texto">{{ procesoActual() }}</dd></div>
+          </div>
+        </dl>
+      </div>
+
+      @if (p.telefono) {
+        <a [href]="'tel:' + p.telefono" class="btn btn-gris mt-4 w-full">
+          <svg lucideIcon="phone" class="size-5"></svg> Llamar al cliente
+        </a>
+      }
+    </section>
+
+    <!-- pestañas -->
+    <section>
+      <div class="pestanas mb-5" role="tablist">
+        @if (p.personalizado) {
+          <button type="button" role="tab" (click)="pestanaElegida.set('jugadores')" class="pestana"
+            [class.pestana-activa]="pestana() == 'jugadores'" [attr.aria-selected]="pestana() == 'jugadores'">
+            Jugadores ({{ p.jugadores.length }})
+          </button>
+        }
+        <button type="button" role="tab" (click)="pestanaElegida.set('detalles')" class="pestana"
+          [class.pestana-activa]="pestana() == 'detalles'" [attr.aria-selected]="pestana() == 'detalles'">Detalles</button>
+        <button type="button" role="tab" (click)="pestanaElegida.set('produccion')" class="pestana"
+          [class.pestana-activa]="pestana() == 'produccion'" [attr.aria-selected]="pestana() == 'produccion'">Producción</button>
+      </div>
+
+      @if (pestana() == 'jugadores') {
+        <app-jugadores [pedidoId]="p.id" [soloLectura]="!abierto()" />
+      }
+
+      @if (pestana() == 'detalles') {
+        <div class="grid gap-4 xl:grid-cols-2">
+          <div class="flex flex-col gap-4">
+            <div class="tarjeta">
+              <h2 class="mb-3 font-bold text-texto">Información</h2>
+              <dl class="grid grid-cols-2 gap-x-4 gap-y-3 text-[15px]">
+                <div><dt class="text-sm text-gris">Registrado</dt><dd class="font-semibold">{{ p.fechaRegistro | fecha }}</dd></div>
+                <div><dt class="text-sm text-gris">Teléfono</dt><dd class="font-semibold">{{ p.telefono || 'Sin teléfono' }}</dd></div>
+                <div><dt class="text-sm text-gris">Procesos</dt><dd class="font-semibold">{{ pedidos.procesosTexto(p) }}</dd></div>
+                <div><dt class="text-sm text-gris">Diseño</dt>
+                  <dd class="font-semibold">{{ textoDiseno() }}
+                    @if (p.disenoRevisar) { <span class="text-amber-700">· por revisar</span> }
+                  </dd>
+                </div>
+              </dl>
+              @if (p.observaciones) {
+                <div class="mt-4 rounded-control bg-gris-claro px-4 py-3">
+                  <p class="text-sm text-gris">Observaciones</p>
+                  <p class="text-[15px] text-texto">{{ p.observaciones }}</p>
+                </div>
+              }
+            </div>
+
+            <div class="tarjeta">
+              <h2 class="mb-3 font-bold text-texto">Dinero</h2>
+              <div class="flex flex-col gap-2 text-[15px]">
+                <div class="flex justify-between"><span class="text-gris">Precio total</span><span class="font-semibold">{{ p.precioTotal | pesos }}</span></div>
+                <div class="flex justify-between"><span class="text-gris">Anticipo</span><span class="font-semibold">{{ p.anticipo | pesos }}</span></div>
+                @if (p.abonos > 0) {
+                  <div class="flex justify-between"><span class="text-gris">Abonos</span><span class="font-semibold">{{ p.abonos | pesos }}</span></div>
+                }
+              </div>
+              <div class="mt-3 flex items-center justify-between rounded-control px-4 py-3"
+                [class]="{ 'bg-gris-claro': saldo() > 0, 'bg-exito-suave': !(saldo() > 0) }">
+                <span class="font-bold">Saldo pendiente</span>
+                <span class="text-xl font-bold" [class]="{ 'text-texto': saldo() > 0, 'text-exito': !(saldo() > 0) }">{{ saldo() | pesos }}</span>
+              </div>
+              @if (saldo() > 0 && p.estado != 'cancelado') {
+                <form (ngSubmit)="registrarAbono()" class="mt-4 flex gap-2">
+                  <input name="abono" type="number" inputmode="numeric" min="0" class="campo flex-1" placeholder="Valor del abono"
+                    [(ngModel)]="valorAbono" aria-label="Valor del abono" />
+                  <button type="submit" class="btn btn-oscuro">Abonar</button>
+                </form>
+              }
+            </div>
+          </div>
+
+          <!-- acciones del pedido -->
+          <div class="flex flex-col gap-3">
+            @if (p.estado == 'en_produccion' || p.estado == 'pendiente') {
+              <button type="button" (click)="finalizar()" class="btn btn-exito w-full">
+                <svg lucideIcon="circle-check" class="size-5"></svg> Finalizar producción
+              </button>
+            }
+            @if (diferencias().length > 0) {
+              <div class="rounded-control bg-error-suave px-4 py-3 text-sm text-error" role="alert">
+                <p class="mb-1 font-semibold">Las cantidades no coinciden:</p>
+                @for (d of diferencias(); track d) { <p>{{ d }}</p> }
+              </div>
+            }
+            @if (p.estado == 'terminado') {
+              <button type="button" (click)="entregar()" class="btn btn-primario w-full">
+                <svg lucideIcon="truck" class="size-5"></svg> Marcar como entregado
+              </button>
+            }
+            @if (abierto()) {
+              <a [routerLink]="'/pedidos/' + p.id + '/editar'" class="btn btn-gris w-full">
+                <svg lucideIcon="pencil" class="size-5"></svg> Editar pedido
+              </a>
+              <button type="button" (click)="cancelar()" class="btn btn-peligro w-full">
+                <svg lucideIcon="ban" class="size-5"></svg> Cancelar pedido
+              </button>
+            }
+            @if (p.estado == 'cancelado') {
+              <button type="button" (click)="reactivar()" class="btn btn-secundario w-full">
+                <svg lucideIcon="rotate-ccw" class="size-5"></svg> Reactivar pedido
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      @if (pestana() == 'produccion') {
+        <div class="flex flex-col gap-4">
+          <div class="tarjeta flex flex-col gap-5">
+            <h2 class="font-bold text-texto">Avance del pedido</h2>
+            @for (a of avances(); track a.proceso) {
+              <div>
+                <app-fila-avance [proceso]="a.proceso" [hecho]="a.hecho" [total]="p.cantidad" />
+                @if (a.danadas > 0) {
+                  <p class="mt-1 ml-[52px] text-xs font-medium text-error">{{ a.danadas }} dañadas</p>
+                }
+              </div>
+            }
+          </div>
+          @if (abierto()) {
+            <div class="tarjeta">
+              <h2 class="mb-1 font-bold text-texto">Asignar trabajos</h2>
+              <p class="mb-4 text-[13px] text-gris">A quien asignes le llega un aviso. Si no asignas a nadie, cualquiera con esa especialidad lo puede hacer.</p>
+              <div class="flex flex-col gap-3">
+                @for (proceso of p.procesos; track proceso) {
+                  <div class="flex items-center gap-3">
+                    <span class="icono-caja size-10 bg-gris-avatar text-negro-2"><app-icono [nombre]="icono(proceso)" clase="size-5" /></span>
+                    <label class="w-24 shrink-0 text-[15px] font-semibold text-texto" [for]="'asignar-' + proceso">{{ nombre(proceso) }}</label>
+                    <select [id]="'asignar-' + proceso" class="campo min-h-11 flex-1" [ngModel]="asignado(proceso)" (ngModelChange)="asignar(proceso, $event)">
+                      <option [ngValue]="0">Cualquiera</option>
+                      @for (e of candidatos(proceso); track e.id) {
+                        <option [ngValue]="e.id">{{ e.nombre }}</option>
+                      }
+                    </select>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+          <div class="grid gap-3 sm:grid-cols-2">
+            @if (abierto() && p.estado != 'terminado') {
+              <a routerLink="/produccion/registrar" [queryParams]="{ pedido: p.id }" class="btn btn-primario w-full">
+                <svg lucideIcon="plus" class="size-5"></svg> Registrar producción
+              </a>
+            }
+            <a [routerLink]="'/produccion/pedido/' + p.id" class="btn btn-secundario w-full">Ver quién hizo cada trabajo</a>
+          </div>
+        </div>
+      }
+    </section>
+  </div>
+} @else {
+  <app-vacio icono="search" mensaje="No se encontró el pedido.">
+    <a routerLink="/pedidos" class="btn btn-secundario mt-4">Volver a pedidos</a>
+  </app-vacio>
+}
