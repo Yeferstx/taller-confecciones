@@ -1,0 +1,144 @@
+<app-encabezado titulo="Pagos">
+  <a routerLink="/pagos/historial" class="btn btn-secundario px-3" aria-label="Historial de pagos">
+    <svg lucideIcon="history" class="size-5"></svg>
+    <span class="hidden sm:inline">Historial</span>
+  </a>
+</app-encabezado>
+
+<div class="grid gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-start">
+  <div class="flex flex-col gap-5">
+    <app-cabecera-tarjeta icono="user-round" titulo="Liquidación de trabajador" subtitulo="Resumen de producción por periodo." />
+
+    <div class="tarjeta flex flex-col gap-4">
+      <div>
+        <label class="etiqueta" for="trabajador">Trabajador</label>
+        <div class="relative">
+          <svg lucideIcon="user-round" class="pointer-events-none absolute top-1/2 left-3.5 size-5 -translate-y-1/2 text-gris"></svg>
+          <select id="trabajador" class="campo pl-11" [ngModel]="empleadoId()" (ngModelChange)="elegir($event)">
+            <option [ngValue]="0">Todos los trabajadores</option>
+            @for (item of resumen(); track item.empleado.id) {
+              <option [ngValue]="item.empleado.id">{{ item.empleado.nombre }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      @if (elegido()) {
+        <div>
+          <span class="etiqueta">Periodo de pago</span>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="relative">
+              <label class="mb-1 block text-xs font-medium text-gris" for="desde">Desde</label>
+              <input id="desde" type="date" class="campo" [ngModel]="desde()" (ngModelChange)="desde.set($event); cambiarFechas()" />
+            </div>
+            <div class="relative">
+              <label class="mb-1 block text-xs font-medium text-gris" for="hasta">Hasta</label>
+              <input id="hasta" type="date" class="campo" [ngModel]="hasta()" (ngModelChange)="hasta.set($event); cambiarFechas()" />
+            </div>
+          </div>
+          <p class="mt-1.5 text-xs text-gris">Deja las fechas vacías para ver todo lo pendiente.</p>
+        </div>
+      }
+    </div>
+
+    @if (!elegido()) {
+      <!-- resumen de todos los trabajadores -->
+      <section>
+        <h2 class="titulo-seccion">Pendiente por trabajador</h2>
+        <div class="tarjeta divide-y divide-borde overflow-hidden p-0">
+          @for (item of resumen(); track item.empleado.id) {
+            <button type="button" (click)="elegir(item.empleado.id)"
+              class="flex min-h-16 w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-gris-claro">
+              <app-role-avatar [rol]="item.empleado.rol" [especialidad]="item.empleado.especialidadPrincipal" [tamano]="40" [nombre]="item.empleado.nombre" />
+              <div class="min-w-0 flex-1">
+                <p class="truncate text-[15px] font-semibold text-texto">{{ item.empleado.nombre }}</p>
+                @if (item.porAprobar > 0) {
+                  <p class="text-xs text-amber-700">{{ item.porAprobar }} trabajo(s) por aprobar</p>
+                }
+              </div>
+              <span class="font-bold" [class]="{ 'text-texto': item.pendiente > 0, 'text-gris': !(item.pendiente > 0) }">{{ item.pendiente | pesos }}</span>
+              <svg lucideIcon="chevron-right" class="size-5 text-gray-400"></svg>
+            </button>
+          }
+        </div>
+      </section>
+    } @else {
+      <!-- produccion realizada del trabajador -->
+      <section>
+        <div class="mb-3 flex items-baseline justify-between">
+          <h2 class="titulo-seccion mb-0">Producción realizada</h2>
+          <span class="text-sm text-gris">{{ prendas() }} prendas</span>
+        </div>
+        <div class="tarjeta divide-y divide-borde overflow-hidden p-0">
+          @for (r of trabajos(); track r.id) {
+            <div class="flex items-center gap-3 px-4 py-3">
+              <app-miniatura-prenda [imagen]="imagenPorTipo(r.tipoPrenda)" [texto]="r.tipoPrenda" tamano="size-14" />
+              <div class="min-w-0 flex-1">
+                <p class="truncate text-[15px] font-bold text-texto">{{ r.proceso | proceso }} <span class="font-normal text-gris">({{ r.tipoPrenda }})</span></p>
+                <p class="text-sm text-texto">{{ r.cantidad }} prendas × {{ r.tarifa | pesos }}</p>
+                <p class="text-xs text-gris">{{ r.numeroPedido }} · {{ r.fecha | fecha }}</p>
+              </div>
+              <div class="shrink-0 text-right">
+                <p class="font-bold text-texto">{{ r.total - r.abonado | pesos }}</p>
+                @if (r.abonado > 0) { <p class="text-xs text-gris">de {{ r.total | pesos }}</p> }
+              </div>
+            </div>
+          } @empty {
+            <app-vacio icono="circle-check" mensaje="No hay trabajos pendientes en estas fechas." />
+          }
+        </div>
+        @if (porAprobar().length > 0) {
+          <p class="mt-3 rounded-control bg-alerta-suave px-4 py-3 text-sm text-amber-900">
+            Hay {{ porAprobar().length }} trabajo(s) sin aprobar. Se podrán pagar cuando se aprueben en Producción.
+          </p>
+        }
+      </section>
+    }
+  </div>
+
+  <!-- total y pago -->
+  <aside class="flex flex-col gap-4 lg:sticky lg:top-24">
+    @if (!elegido()) {
+      <div class="relative overflow-hidden rounded-tarjeta bg-negro p-5 text-white shadow-card">
+        <div class="absolute inset-y-0 left-0 w-1.5 bg-rojo"></div>
+        <p class="text-sm text-white/70">Total pendiente por pagar</p>
+        <p class="mt-1 text-[32px] leading-tight font-bold tracking-tight">{{ totalGeneral() | pesos }}</p>
+        <p class="mt-1 text-sm text-white/60">Selecciona un trabajador para liquidar.</p>
+      </div>
+    } @else {
+      <div class="flex items-center justify-between gap-3 rounded-tarjeta bg-exito-suave px-5 py-4 ring-1 ring-green-200">
+        <span class="text-[17px] font-bold text-texto">Total a pagar</span>
+        <span class="text-[26px] leading-none font-bold text-texto">{{ deuda() | pesos }}</span>
+      </div>
+
+      @if (deuda() > 0) {
+        <form (ngSubmit)="pagar()" class="tarjeta flex flex-col gap-4">
+          <div>
+            <label class="etiqueta" for="valor">Valor a pagar</label>
+            <input id="valor" name="valor" type="number" inputmode="numeric" min="0" class="campo text-lg font-bold"
+              [ngModel]="valor()" (ngModelChange)="valor.set($event)" />
+            <div class="mt-2 flex gap-2">
+              <button type="button" (click)="valor.set(deuda())" class="btn btn-gris min-h-11 flex-1 text-sm">Todo</button>
+              <button type="button" (click)="valor.set(mitad())" class="btn btn-gris min-h-11 flex-1 text-sm">La mitad</button>
+            </div>
+            @if ((valor() || 0) > 0 && (valor() || 0) < deuda()) {
+              <p class="mt-2 text-sm text-amber-700">Pago parcial. Quedan {{ deuda() - (valor() || 0) | pesos }} pendientes.</p>
+            }
+          </div>
+          <div>
+            <label class="etiqueta" for="nota">Nota <span class="font-normal text-gris">(opcional)</span></label>
+            <input id="nota" name="nota" class="campo" [(ngModel)]="nota" placeholder="Ej: pago en efectivo" />
+          </div>
+          @if (error()) {
+            <p class="rounded-control bg-error-suave px-4 py-3 text-[15px] font-medium text-error" role="alert">{{ error() }}</p>
+          }
+          <button type="submit" class="btn btn-primario min-h-14 w-full text-base">
+            <svg lucideIcon="wallet" class="size-5"></svg> Registrar pago
+          </button>
+        </form>
+      }
+
+      <a [routerLink]="'/empleados/' + empleadoId()" class="btn btn-secundario w-full">Ver historial del trabajador</a>
+    }
+  </aside>
+</div>
