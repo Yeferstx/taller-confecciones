@@ -1,0 +1,17 @@
+# archivos que genera la compilacion
+/dist
+/tmp
+/out-tsc
+/.angular/cache
+.angular
+
+# dependencias
+/node_modules
+npm-debug.log
+yarn-error.log
+
+# editores y sistema
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
