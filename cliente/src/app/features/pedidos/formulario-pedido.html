@@ -1,0 +1,134 @@
+<app-encabezado [titulo]="tituloPagina()" [volver]="volver()" />
+
+<form (ngSubmit)="guardar()" class="grid gap-5 lg:grid-cols-2 lg:items-start">
+
+  <section class="tarjeta flex flex-col gap-4">
+    <h2 class="font-semibold text-texto">Cliente</h2>
+    <div>
+      <label class="etiqueta" for="cliente">Nombre del cliente</label>
+      <input id="cliente" name="cliente" class="campo" list="lista-clientes" autocomplete="off"
+        [(ngModel)]="form.cliente" (change)="clienteCambio()" placeholder="Ej: Edwin Salazar" />
+      <datalist id="lista-clientes">
+        @for (cliente of clientes.lista(); track cliente.id) {
+          <option [value]="cliente.nombre"></option>
+        }
+      </datalist>
+    </div>
+    <div class="grid gap-4 sm:grid-cols-2">
+      <div>
+        <label class="etiqueta" for="telefono">Teléfono</label>
+        <input id="telefono" name="telefono" type="tel" inputmode="tel" class="campo" [(ngModel)]="form.telefono"
+          placeholder="300 000 0000" />
+      </div>
+      <div>
+        <label class="etiqueta" for="equipo">Equipo o empresa <span class="font-normal text-gris">(opcional)</span></label>
+        <input id="equipo" name="equipo" class="campo" [(ngModel)]="form.equipo" placeholder="Ej: Club Pijaos del Tolima" />
+      </div>
+    </div>
+  </section>
+
+  <section class="tarjeta flex flex-col gap-4">
+    <h2 class="font-semibold text-texto">Prendas</h2>
+    <div>
+      <span class="etiqueta">Tipo de prenda</span>
+      <div class="flex flex-wrap gap-2">
+        @for (tipo of configuracion.datos().tiposPrenda; track tipo) {
+          <button type="button" (click)="form.tipoPrenda = tipo"
+            class="opcion min-h-11 px-4 text-[15px]" [class.opcion-activa]="form.tipoPrenda == tipo">
+            {{ tipo }}
+          </button>
+        }
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="etiqueta" for="cantidad">Cantidad</label>
+        <input id="cantidad" name="cantidad" type="number" inputmode="numeric" min="1" class="campo"
+          [(ngModel)]="form.cantidad" placeholder="0" />
+      </div>
+      <div>
+        <label class="etiqueta" for="entrega">Fecha de entrega</label>
+        <input id="entrega" name="entrega" type="date" class="campo" [(ngModel)]="form.fechaEntrega" />
+      </div>
+    </div>
+    <div>
+      <span class="etiqueta">Procesos que necesita</span>
+      <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        @for (proceso of procesos; track proceso) {
+          <button type="button" (click)="cambiarProceso(proceso)"
+            class="opcion flex min-h-12 items-center justify-center gap-1.5 px-2 text-sm"
+            [class.opcion-marcada]="form.procesos.includes(proceso)">
+            @if (form.procesos.includes(proceso)) {
+              <svg lucideIcon="check" class="size-4"></svg>
+            }
+            {{ proceso | proceso }}
+          </button>
+        }
+      </div>
+    </div>
+    <label class="flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border border-borde px-4">
+      <input type="checkbox" name="personalizado" class="size-5 accent-rojo" [(ngModel)]="form.personalizado" />
+      <span class="text-[15px] text-texto">Lleva nombres, números y tallas por jugador</span>
+    </label>
+  </section>
+
+  <section class="tarjeta flex flex-col gap-4">
+    <h2 class="font-semibold text-texto">Dinero</h2>
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="etiqueta" for="precio">Precio total</label>
+        <input id="precio" name="precio" type="number" inputmode="numeric" min="0" class="campo"
+          [(ngModel)]="form.precioTotal" placeholder="0" />
+      </div>
+      <div>
+        <label class="etiqueta" for="anticipo">Anticipo</label>
+        <input id="anticipo" name="anticipo" type="number" inputmode="numeric" min="0" class="campo"
+          [(ngModel)]="form.anticipo" placeholder="0" />
+      </div>
+    </div>
+    <div class="flex items-center justify-between rounded-xl bg-fondo px-4 py-3">
+      <span class="text-[15px] text-gris">Saldo pendiente</span>
+      <span class="text-lg font-bold text-texto">{{ saldo() | pesos }}</span>
+    </div>
+  </section>
+
+  <section class="tarjeta flex flex-col gap-4">
+    <h2 class="font-semibold text-texto">Diseño</h2>
+    <div>
+      <span class="etiqueta">Imagen de referencia</span>
+      @if (imagen()) {
+        <div class="relative w-40">
+          <img [src]="imagen()" alt="Imagen de referencia" class="aspect-square w-40 rounded-xl border border-borde object-contain bg-white" />
+          <button type="button" (click)="imagen.set('')" aria-label="Quitar imagen"
+            class="absolute -top-2 -right-2 flex size-9 items-center justify-center rounded-full border border-borde bg-white text-error">
+            <svg lucideIcon="x" class="size-5"></svg>
+          </button>
+        </div>
+      } @else {
+        <label class="flex min-h-24 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-borde text-gris hover:border-rojo hover:text-rojo">
+          <svg lucideIcon="upload" class="size-6"></svg>
+          <span class="text-sm font-medium">
+            @if (cargandoImagen()) { Cargando... } @else { Subir foto o imagen }
+          </span>
+          <input type="file" accept="image/*" class="hidden" (change)="elegirImagen($event)" />
+        </label>
+      }
+    </div>
+    <div>
+      <label class="etiqueta" for="observaciones">Observaciones</label>
+      <textarea id="observaciones" name="observaciones" rows="3" class="campo"
+        [(ngModel)]="form.observaciones" placeholder="Colores, logos, detalles del diseño..."></textarea>
+    </div>
+  </section>
+
+  @if (error) {
+    <p role="alert" class="lg:col-span-2 flex items-center gap-2 rounded-xl bg-error-suave px-4 py-3 text-[15px] font-medium text-error">
+      <svg lucideIcon="circle-alert" class="size-5 shrink-0"></svg> {{ error }}
+    </p>
+  }
+
+  <button type="submit" class="btn btn-primario min-h-14 w-full text-base lg:col-span-2 lg:ml-auto lg:w-80">
+    <svg lucideIcon="check" class="size-5"></svg>
+    @if (editando) { Guardar cambios } @else { Crear pedido }
+  </button>
+</form>
