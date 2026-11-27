@@ -1,0 +1,151 @@
+<app-encabezado titulo="Producción" [volver]="volver()" />
+
+<div class="grid gap-6 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-start">
+
+  <form (ngSubmit)="guardar()" class="flex flex-col gap-5">
+    <app-cabecera-tarjeta [icono]="iconoTitulo()" [titulo]="textoTitulo()" subtitulo="Anota lo que se terminó. La fecha se guarda sola." />
+
+    <div class="tarjeta flex flex-col gap-5">
+      <!-- pedido -->
+      <div>
+        <label class="etiqueta" for="pedido">Pedido</label>
+        <div class="relative">
+          <svg lucideIcon="clipboard-list" class="pointer-events-none absolute top-1/2 left-3.5 size-5 -translate-y-1/2 text-gris"></svg>
+          <select id="pedido" name="pedido" class="campo pl-11" [ngModel]="pedidoId()" (ngModelChange)="cambiarPedido($event)">
+            <option [ngValue]="0" disabled>Selecciona un pedido</option>
+            @for (p of pedidosAbiertos(); track p.id) {
+              <option [ngValue]="p.id">{{ p.numero }} – {{ p.equipo }}</option>
+            }
+          </select>
+        </div>
+      </div>
+
+      <!-- proceso: solo si tiene varias actividades autorizadas -->
+      @if (mostrarProcesos()) {
+        <div>
+          <span class="etiqueta" id="titulo-proceso">Proceso</span>
+          <div class="grid gap-2" [class]="claseProcesos()"
+            role="group" aria-labelledby="titulo-proceso">
+            @for (proceso of procesosPermitidos(); track proceso) {
+              <button type="button" (click)="elegirProceso(proceso)"
+                [disabled]="pedidoElegido() && !pedidoElegido()?.procesos?.includes(proceso)"
+                class="opcion flex min-h-[68px] flex-col items-center justify-center gap-1 px-1 text-[13px] disabled:opacity-35 sm:text-sm"
+                [class.opcion-activa]="procesoElegido() == proceso" [attr.aria-pressed]="procesoElegido() == proceso">
+                <app-icono [nombre]="iconoProceso(proceso)" clase="size-5" />
+                {{ proceso | proceso }}
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      @if (pedidoElegido() && procesoElegido()) {
+        <div class="grid grid-cols-2 gap-3">
+          <div class="rounded-control bg-exito-suave px-4 py-3 text-center">
+            <p class="text-[28px] leading-none font-bold text-texto">{{ disponibles() }}</p>
+            <p class="mt-1 text-xs font-semibold text-exito">Disponibles ahora</p>
+          </div>
+          <div class="rounded-control bg-gris-claro px-4 py-3 text-center ring-1 ring-borde">
+            <p class="text-[28px] leading-none font-bold text-texto">{{ faltan() }}</p>
+            <p class="mt-1 text-xs font-semibold text-gris">Pendientes del pedido</p>
+          </div>
+        </div>
+      }
+
+      <!-- trabajador -->
+      <div>
+        <label class="etiqueta" for="trabajador">Trabajador</label>
+        <div class="relative">
+          <svg lucideIcon="user-round" class="pointer-events-none absolute top-1/2 left-3.5 size-5 -translate-y-1/2 text-gris"></svg>
+          @if (sesion.esOperario()) {
+            <p class="campo flex items-center bg-gris-claro pl-11 font-medium">{{ nombreOperario() }}</p>
+          } @else {
+            <select id="trabajador" name="trabajador" class="campo pl-11" [ngModel]="empleadoId()" (ngModelChange)="empleadoId.set($event)">
+              <option [ngValue]="0" disabled>Selecciona quién lo hizo</option>
+              @for (e of trabajadores(); track e.id) {
+                <option [ngValue]="e.id">{{ e.nombre }}</option>
+              }
+            </select>
+          }
+        </div>
+      </div>
+
+      <!-- cantidad -->
+      <div>
+        <label class="etiqueta" for="cantidad">Cantidad realizada</label>
+        <div class="relative">
+          <input id="cantidad" name="cantidad" type="number" inputmode="numeric" min="0"
+            class="campo min-h-16 pr-24 text-2xl font-bold" placeholder="0"
+            [ngModel]="cantidad()" (ngModelChange)="cantidad.set($event)" />
+          <span class="pointer-events-none absolute top-1/2 right-4 -translate-y-1/2 text-[15px] font-medium text-gris">prendas</span>
+        </div>
+        @if (pedidoElegido() && procesoElegido() && faltan() <= 0) {
+          <p class="mt-2 text-sm font-semibold text-exito">Este proceso ya está completo.</p>
+        }
+        @if (sesion.esAdmin() && tarifa() > 0 && cantidad()) {
+          <p class="mt-1 text-sm text-gris">
+            Tarifa {{ tarifa() | pesos }} por prenda · Total <b class="text-texto">{{ (cantidad() || 0) * tarifa() | pesos }}</b>
+          </p>
+        }
+        @if (sesion.esAdmin() && empleadoId() && procesoElegido() && pedidoElegido() && tarifa() == 0) {
+          <p class="mt-1 text-sm text-amber-700">Este trabajador no tiene tarifa para {{ pedidoElegido()?.tipoPrenda }}. Se guardará en $ 0.</p>
+        }
+      </div>
+
+      @if (verDanadas()) {
+        <div>
+          <label class="etiqueta" for="danadas">Prendas dañadas</label>
+          <input id="danadas" name="danadas" type="number" inputmode="numeric" min="0" class="campo" placeholder="0"
+            [ngModel]="danadas()" (ngModelChange)="danadas.set($event)" />
+          <p class="mt-1 text-sm text-gris">No se suman como terminadas ni se pagan.</p>
+        </div>
+      } @else {
+        <button type="button" (click)="verDanadas.set(true)" class="-mt-2 min-h-11 self-start text-sm font-semibold text-gris underline-offset-4 hover:text-rojo hover:underline">
+          + Hubo prendas dañadas
+        </button>
+      }
+
+      @if (excede() && sesion.esAdmin()) {
+        <label class="flex min-h-14 cursor-pointer items-center gap-3 rounded-control bg-alerta-suave px-4 text-amber-900">
+          <input type="checkbox" name="autorizar" class="size-5 accent-amber-600" [ngModel]="autorizar()" (ngModelChange)="autorizar.set($event)" />
+          <span class="text-[15px]">Autorizar cantidad extra (supera lo pedido)</span>
+        </label>
+      }
+
+      @if (error()) {
+        <p class="flex items-start gap-2 rounded-control bg-error-suave px-4 py-3 text-[15px] font-medium text-error" role="alert">
+          <svg lucideIcon="circle-alert" class="mt-0.5 size-5 shrink-0"></svg> {{ error() }}
+        </p>
+      }
+    </div>
+
+    <button type="submit" class="btn btn-primario min-h-14 w-full text-base">
+      <svg lucideIcon="check" class="size-5"></svg> Guardar registro
+    </button>
+  </form>
+
+  <!-- avance del pedido elegido -->
+  <aside class="tarjeta lg:sticky lg:top-24">
+    @if (pedidoElegido(); as p) {
+      <div class="mb-5 flex items-center gap-3">
+        <app-miniatura-prenda [imagen]="imagenPedido()" [texto]="p.tipoPrenda" tamano="size-14" />
+        <div class="min-w-0">
+          <p class="text-xs font-bold text-gris">{{ p.numero }}</p>
+          <p class="truncate font-bold text-texto">{{ p.equipo }}</p>
+          <p class="text-sm text-gris">{{ p.cantidad }} {{ p.tipoPrenda.toLowerCase() }}</p>
+        </div>
+      </div>
+      <h2 class="mb-4 text-[17px] font-bold text-texto">Avance del pedido</h2>
+      <div class="flex flex-col gap-5">
+        @for (a of avancesPedido(); track a.proceso) {
+          <app-fila-avance [proceso]="a.proceso" [hecho]="a.hecho" [total]="p.cantidad" />
+        }
+      </div>
+    } @else {
+      <div class="flex flex-col items-center py-8 text-center">
+        <div class="icono-caja mb-3 size-12 bg-gris-claro text-gris"><svg lucideIcon="layers" class="size-6"></svg></div>
+        <p class="text-[15px] text-gris">Selecciona un pedido para ver cuánto lleva cada proceso.</p>
+      </div>
+    }
+  </aside>
+</div>
