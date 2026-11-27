@@ -1,0 +1,224 @@
+<!-- barra de carga al cambiar de pantalla -->
+@if (cargando()) {
+  <div class="fixed inset-x-0 top-0 z-[60] h-[3px] overflow-hidden bg-rojo/20" role="progressbar" aria-label="Cargando">
+    <div class="barra-carga h-full w-2/5 bg-rojo"></div>
+  </div>
+}
+
+<div class="min-h-dvh lg:flex">
+
+  <!-- barra lateral para computador -->
+  <aside class="sticky top-0 hidden h-dvh w-[248px] shrink-0 flex-col bg-[linear-gradient(180deg,#0B0B0B_0%,#0B0B0B_62%,#1A0002_86%,#3A0004_100%)] text-white lg:flex">
+    <div class="px-6 pt-6 pb-5">
+      <img src="ideal-sport/logo-ideal.webp" alt="Ideal Publicidad Sport" class="h-auto w-[168px]" />
+    </div>
+
+    <nav class="scroll-oscuro flex-1 overflow-y-auto px-3 pb-4" aria-label="Menú principal">
+      @for (opcion of principales(); track opcion.ruta) {
+        <a [routerLink]="opcion.ruta" routerLinkActive="!bg-rojo !text-white shadow-primary"
+          class="mb-1 flex min-h-12 items-center gap-3 rounded-control px-4 text-[15px] font-semibold text-white/70 transition-colors hover:bg-white/8 hover:text-white">
+          <svg [lucideIcon]="opcion.icono" class="size-[21px]"></svg>
+          {{ opcion.texto }}
+        </a>
+      }
+
+      @if (secundarias().length > 0) {
+        <p class="mt-6 mb-2 px-4 text-[11px] font-bold tracking-[0.12em] text-white/40 uppercase">Más opciones</p>
+        @for (opcion of secundarias(); track opcion.ruta) {
+          <a [routerLink]="opcion.ruta" routerLinkActive="!bg-white/10 !text-white"
+            [routerLinkActiveOptions]="{ exact: opcion.ruta == '/produccion/danadas' }"
+            class="mb-0.5 flex min-h-11 items-center gap-3 rounded-control px-4 text-sm font-medium text-white/60 transition-colors hover:bg-white/8 hover:text-white">
+            <svg [lucideIcon]="opcion.icono" class="size-5"></svg>
+            {{ opcion.texto }}
+          </a>
+        }
+      }
+    </nav>
+  </aside>
+
+  <div class="min-w-0 flex-1">
+
+    <!-- encabezado de computador: buscador, avisos y perfil -->
+    <header class="sticky top-0 z-30 hidden border-b border-borde bg-white/95 backdrop-blur lg:block">
+      <div class="mx-auto flex h-[72px] max-w-7xl items-center gap-4 px-8">
+        @if (sesion.esAdmin()) {
+          <form (submit)="buscar($event)" class="relative w-full max-w-md" role="search">
+            <svg lucideIcon="search" class="pointer-events-none absolute top-1/2 left-3.5 size-5 -translate-y-1/2 text-gris"></svg>
+            <input name="buscar" type="search" class="campo bg-gris-claro pl-11" placeholder="Buscar pedido, cliente o equipo"
+              aria-label="Buscar pedidos" />
+          </form>
+        } @else {
+          <p class="text-sm font-medium text-gris capitalize">{{ fechaHoy }}</p>
+        }
+        <div class="ml-auto flex items-center gap-2">
+          <a routerLink="/notificaciones" aria-label="Notificaciones"
+            class="relative flex size-11 items-center justify-center rounded-control text-texto transition-colors hover:bg-gris-claro">
+            <svg lucideIcon="bell" class="size-[22px]"></svg>
+            @if (notificaciones.sinLeer() > 0) {
+              <span class="absolute top-1.5 right-1.5 flex min-w-5 items-center justify-center rounded-full bg-rojo px-1 text-[11px] font-bold text-white ring-2 ring-white">
+                {{ notificaciones.sinLeer() }}
+              </span>
+            }
+          </a>
+          <div class="relative ml-2 border-l border-borde pl-3">
+            <button type="button" (click)="perfilAbierto.set(!perfilAbierto())" [attr.aria-expanded]="perfilAbierto()"
+              class="flex items-center gap-3 rounded-control py-1 pr-2 pl-1 text-left transition-colors hover:bg-gris-claro">
+              <app-role-avatar [rol]="sesion.usuario().rol" [especialidad]="sesion.especialidadAvatar()" [tamano]="44" [nombre]="sesion.usuario().nombre" />
+              <span class="leading-tight">
+                <span class="block text-sm font-bold text-texto">{{ sesion.usuario().nombre }}</span>
+                <span class="block text-xs font-normal text-gris">{{ sesion.cargo() }}</span>
+              </span>
+              <svg lucideIcon="chevron-down" class="size-4 text-gris"></svg>
+            </button>
+            @if (perfilAbierto()) {
+              <div class="fixed inset-0 z-40" (click)="perfilAbierto.set(false)"></div>
+              <div class="animar-entrada absolute top-full right-0 z-50 mt-2 max-h-[75vh] w-80 overflow-y-auto rounded-tarjeta bg-white p-3 shadow-elevated ring-1 ring-borde">
+                <a routerLink="/perfil" class="mb-3 flex min-h-11 items-center gap-2 rounded-control px-3 text-[15px] font-semibold hover:bg-gris-claro">
+                  <svg lucideIcon="circle-user" class="size-5"></svg> Mi perfil
+                </a>
+                <app-selector-usuario (cambiado)="cerrarMenus()" />
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- celular: encabezado de inicio, negro con rojo oscuro detras de la camiseta -->
+    @if (esInicio()) {
+      <header class="fondo-inicio corte-diagonal relative overflow-hidden text-white lg:hidden">
+        <div class="puntos-suaves pointer-events-none absolute inset-0" aria-hidden="true"></div>
+        <svg class="pointer-events-none absolute -bottom-4 -left-8 h-36 w-[125%] text-rojo/20" viewBox="0 0 400 120" fill="none" aria-hidden="true">
+          <path d="M0 112 C 130 48, 270 26, 400 58" stroke="currentColor" stroke-width="1.5" />
+        </svg>
+        <!-- camiseta aparte: se ve cuello, hombros y pecho; la parte de abajo se funde -->
+        <img src="ideal-sport/camiseta-ideal.webp" alt="" aria-hidden="true" width="760" height="724"
+          class="camiseta-integrada pointer-events-none absolute top-[40px] right-[-7%] h-auto w-[clamp(165px,52vw,290px)] select-none" />
+        <div class="relative px-4 pt-[calc(0.5rem+env(safe-area-inset-top))] pb-[60px]">
+          <div class="grid grid-cols-[44px_1fr_44px] items-center gap-3">
+            <button type="button" (click)="menu.abrir()" aria-label="Abrir menú"
+              class="flex size-11 items-center justify-center rounded-control transition-colors hover:bg-white/10">
+              <svg lucideIcon="menu" class="size-6"></svg>
+            </button>
+            <img src="ideal-sport/logo-ideal.webp" alt="Ideal Publicidad Sport" width="600" height="240"
+              class="mx-auto h-auto w-[clamp(130px,36vw,145px)]" />
+            <a routerLink="/notificaciones" aria-label="Notificaciones"
+              class="relative flex size-11 items-center justify-center rounded-control bg-black/45 ring-1 ring-white/10 backdrop-blur-sm transition-colors hover:bg-black/60">
+              <svg lucideIcon="bell" class="size-[22px]"></svg>
+              @if (notificaciones.sinLeer() > 0) {
+                <span class="absolute -top-1.5 -right-1.5 flex min-w-5 items-center justify-center rounded-full bg-rojo px-1 text-[11px] font-bold ring-2 ring-negro">{{ notificaciones.sinLeer() }}</span>
+              }
+            </a>
+          </div>
+          <div class="mt-4 max-w-[60%]">
+            <p class="text-xs font-medium text-white/55 capitalize">{{ fechaHoy }}</p>
+            <h1 class="mt-1 truncate text-[clamp(22px,6.6vw,26px)] leading-tight font-bold">{{ saludoCorto() }}</h1>
+            <p class="mt-0.5 text-sm font-normal text-white/70">Así va tu taller hoy</p>
+          </div>
+        </div>
+      </header>
+    } @else {
+      <!-- celular: barra superior compacta -->
+      <header class="sticky top-0 z-30 bg-[linear-gradient(100deg,#0B0B0B_50%,#3A0004_85%,#900009)] pt-[env(safe-area-inset-top)] text-white lg:hidden">
+        <div class="flex h-14 items-center gap-2 px-2">
+          <button type="button" (click)="menu.abrir()" aria-label="Abrir menú"
+            class="flex size-11 items-center justify-center rounded-control hover:bg-white/10">
+            <svg lucideIcon="menu" class="size-6"></svg>
+          </button>
+          <img src="ideal-sport/logo-ideal.webp" alt="Ideal Publicidad Sport" width="600" height="240" class="h-8 w-auto" />
+          <a routerLink="/notificaciones" aria-label="Notificaciones"
+            class="relative ml-auto flex size-11 items-center justify-center rounded-control hover:bg-white/10">
+            <svg lucideIcon="bell" class="size-[22px]"></svg>
+            @if (notificaciones.sinLeer() > 0) {
+              <span class="absolute top-1 right-1 flex min-w-5 items-center justify-center rounded-full bg-rojo px-1 text-[11px] font-bold ring-2 ring-negro">{{ notificaciones.sinLeer() }}</span>
+            }
+          </a>
+        </div>
+      </header>
+    }
+
+    <main class="espacio-barra mx-auto max-w-7xl px-4 lg:px-8 lg:pt-8" [class.pt-5]="!esInicio()">
+      <div class="animar-entrada">
+        <router-outlet />
+      </div>
+    </main>
+  </div>
+
+  <!-- barra inferior para celular -->
+  <nav class="fixed inset-x-0 bottom-0 z-30 border-t border-borde bg-white pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_14px_rgba(0,0,0,0.06)] lg:hidden" aria-label="Navegación">
+    <div class="mx-auto flex max-w-xl">
+      @for (opcion of principales(); track opcion.ruta) {
+        <a [routerLink]="opcion.ruta" routerLinkActive #activo="routerLinkActive"
+          class="relative flex min-h-[62px] flex-1 flex-col items-center justify-center gap-1 text-[11px] font-semibold transition-colors sm:text-xs"
+          [class]="{ 'text-rojo': activo.isActive && !menu.abierto(), 'text-negro': !(activo.isActive && !menu.abierto()) }">
+          @if (activo.isActive && !menu.abierto()) {
+            <span class="absolute top-0 h-[3px] w-9 rounded-b-full bg-rojo"></span>
+          }
+          <svg [lucideIcon]="opcion.icono" class="size-6" [attr.stroke-width]="grosorIcono(activo.isActive)"></svg>
+          {{ opcion.texto }}
+        </a>
+      }
+      @if (sesion.esAdmin()) {
+        <button type="button" (click)="menu.abrir()"
+          class="relative flex min-h-[62px] flex-1 flex-col items-center justify-center gap-1 text-[11px] font-semibold transition-colors sm:text-xs"
+          [class]="{ 'text-rojo': menu.abierto(), 'text-negro': !(menu.abierto()) }">
+          @if (menu.abierto()) {
+            <span class="absolute top-0 h-[3px] w-9 rounded-b-full bg-rojo"></span>
+          }
+          <svg lucideIcon="ellipsis" class="size-6"></svg>
+          Más
+        </button>
+      }
+    </div>
+  </nav>
+
+  <!-- menu del celular -->
+  @if (menu.abierto()) {
+    <div class="fixed inset-0 z-40 bg-black/40 lg:hidden" (click)="menu.cerrar()"></div>
+    <div class="animar-hoja fixed inset-x-0 bottom-0 z-50 max-h-[85dvh] overflow-y-auto rounded-t-[20px] bg-white px-4 pt-3 pb-[calc(1.5rem+env(safe-area-inset-bottom))] lg:hidden"
+      role="dialog" aria-label="Menú">
+      <div class="mx-auto mb-3 h-1.5 w-10 rounded-full bg-borde"></div>
+      <div class="mb-4 flex items-center gap-3">
+        <app-role-avatar [rol]="sesion.usuario().rol" [especialidad]="sesion.especialidadAvatar()" [tamano]="44" [nombre]="sesion.usuario().nombre" />
+        <div class="min-w-0 flex-1 leading-tight">
+          <p class="truncate font-bold text-texto">{{ sesion.usuario().nombre }}</p>
+          <p class="text-[13px] font-normal text-gris">{{ sesion.cargo() }}</p>
+        </div>
+        <button type="button" (click)="menu.cerrar()" aria-label="Cerrar"
+          class="flex size-11 items-center justify-center rounded-control hover:bg-gris-claro">
+          <svg lucideIcon="x" class="size-6"></svg>
+        </button>
+      </div>
+
+      @if (secundarias().length > 0) {
+        <div class="mb-6 grid grid-cols-2 gap-2">
+          @for (opcion of secundarias(); track opcion.ruta) {
+            <a [routerLink]="opcion.ruta"
+              class="flex min-h-14 items-center gap-3 rounded-control bg-gris-claro px-3 text-[15px] font-semibold text-texto ring-1 ring-borde active:bg-borde">
+              <svg [lucideIcon]="opcion.icono" class="size-5 shrink-0 text-rojo"></svg>
+              <span class="leading-tight">{{ opcion.texto }}</span>
+            </a>
+          }
+        </div>
+      }
+
+      <app-selector-usuario (cambiado)="cerrarMenus()" />
+    </div>
+  }
+
+  <!-- mensaje de confirmacion -->
+  @if (aviso.mensaje()) {
+    <div class="pointer-events-none fixed inset-x-0 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-50 flex justify-center px-4 lg:bottom-8"
+      role="status" aria-live="polite">
+      <div class="animar-entrada flex max-w-md items-center gap-2 rounded-control px-4 py-3 text-[15px] font-semibold text-white shadow-elevated"
+        [class]="{ 'bg-error': aviso.tipo() == 'error', 'bg-negro': !(aviso.tipo() == 'error') }">
+        @if (aviso.tipo() == 'error') {
+          <svg lucideIcon="circle-alert" class="size-5 shrink-0"></svg>
+        } @else {
+          <svg lucideIcon="circle-check" class="size-5 shrink-0 text-green-400"></svg>
+        }
+        {{ aviso.mensaje() }}
+      </div>
+    </div>
+  }
+</div>

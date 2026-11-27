@@ -1,0 +1,395 @@
+@import "tailwindcss";
+
+/* tipografia Manrope guardada en el proyecto (public/fuentes), sin pedirla a internet */
+@font-face {
+  font-family: "Manrope";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url("./fuentes/manrope-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Manrope";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 200 800;
+  src: url("./fuentes/manrope-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F,
+    U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* Sora para encabezados y titulos principales */
+@font-face {
+  font-family: "Sora";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 800;
+  src: url("./fuentes/sora-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Sora";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 800;
+  src: url("./fuentes/sora-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1D00-1DBF, U+1E00-1E9F,
+    U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* identidad visual de Ideal Publicidad Sport */
+@theme {
+  --font-sans: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-titulo: "Sora", "Manrope", system-ui, sans-serif;
+
+  --color-rojo: #E10613;
+  --color-rojo-hover: #C70511;
+  --color-rojo-oscuro: #900009;
+  --color-rojo-suave: #FCE8EA;
+  --color-rojo-avatar: #C8102E;
+  --color-negro: #0B0B0B;
+  --color-negro-2: #18181B;
+  --color-negro-avatar: #151515;
+  --color-fondo: #F5F5F7;
+  --color-texto: #111111;
+  --color-gris: #64748B;
+  --color-gris-claro: #FAFAFA;
+  --color-gris-avatar: #EDEEF0;
+  --color-borde: #E5E7EB;
+  --color-exito: #16A34A;
+  --color-exito-suave: #DCFCE7;
+  --color-alerta: #F59E0B;
+  --color-alerta-suave: #FEF3C7;
+  --color-error: #DC2626;
+  --color-error-suave: #FEE2E2;
+  --color-lila: #EDE9FE;
+
+  /* sombras centralizadas */
+  --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.04);
+  --shadow-card: 0 5px 15px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.03);
+  --shadow-elevated: 0 8px 20px rgba(0, 0, 0, 0.1);
+  --shadow-primary: 0 5px 14px rgba(225, 6, 19, 0.15);
+
+  /* bordes redondeados */
+  --radius-encabezado: 20px;
+  --radius-resumen: 18px;
+  --radius-tarjeta: 16px;
+  --radius-boton: 14px;
+  --radius-control: 12px;
+
+  --default-transition-duration: 180ms;
+}
+
+html,
+body {
+  background: var(--color-fondo);
+  color: var(--color-texto);
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.5;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* encabezados en Sora, sin negrita demasiado gruesa */
+h1,
+h2,
+h3 {
+  font-family: var(--font-titulo);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+h1 {
+  letter-spacing: -0.8px;
+}
+
+/* componentes visuales reutilizables */
+@layer components {
+  .tarjeta {
+    @apply rounded-tarjeta bg-white p-4 shadow-card;
+  }
+
+  .btn {
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-boton px-4 text-[15px] font-semibold transition-all select-none active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 sm:text-base;
+  }
+
+  .btn-primario {
+    @apply bg-[linear-gradient(180deg,#E8131F_0%,#E10613_55%,#CC0511_100%)] text-white shadow-primary hover:brightness-95;
+  }
+
+  .btn-oscuro {
+    @apply bg-negro text-white hover:bg-negro-2;
+  }
+
+  .btn-secundario {
+    @apply bg-white text-texto shadow-sm ring-1 ring-borde hover:bg-gris-claro;
+  }
+
+  /* acciones rapidas secundarias: casi blanco con sombra ligera */
+  .btn-accion-clara {
+    @apply bg-gris-claro font-semibold text-negro shadow-card ring-1 ring-black/5 hover:bg-white;
+  }
+
+  .btn-gris {
+    @apply bg-gris-claro text-texto ring-1 ring-borde hover:bg-borde;
+  }
+
+  .btn-peligro {
+    @apply bg-white text-error ring-1 ring-red-200 hover:bg-error-suave;
+  }
+
+  .btn-exito {
+    @apply bg-exito text-white hover:bg-green-700;
+  }
+
+  .etiqueta {
+    @apply mb-1.5 block text-sm font-semibold text-texto;
+  }
+
+  .campo {
+    @apply block min-h-12 w-full rounded-control border border-borde bg-white px-3.5 text-base font-medium text-texto transition-colors outline-none placeholder:font-normal placeholder:text-gray-400 focus:border-rojo focus:ring-2 focus:ring-rojo/15;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold whitespace-nowrap;
+  }
+
+  /* titulos: 18px en celular y 20px en computador */
+  .titulo-seccion {
+    @apply mb-3 font-titulo text-lg font-semibold tracking-[-0.3px] text-texto lg:text-xl;
+  }
+
+  .texto-secundario {
+    @apply text-[13px] font-normal text-gris;
+  }
+
+  /* pestañas con linea roja debajo */
+  .pestanas {
+    @apply flex border-b border-borde;
+  }
+
+  .pestana {
+    @apply -mb-px flex min-h-12 flex-auto items-center justify-center border-b-[3px] border-transparent px-2 text-sm font-semibold whitespace-nowrap text-gris transition-colors sm:text-[15px];
+  }
+
+  .pestana-activa {
+    @apply border-rojo font-bold text-rojo;
+  }
+
+  /* segmentos para filtros cortos */
+  .segmentos {
+    @apply grid gap-1 rounded-control bg-white p-1 shadow-sm ring-1 ring-borde;
+  }
+
+  .segmento {
+    @apply flex min-h-11 items-center justify-center gap-1.5 rounded-[10px] text-sm font-semibold text-gris transition-colors;
+  }
+
+  .segmento-activo {
+    @apply bg-negro text-white shadow-sm;
+  }
+
+  /* boton de opcion grande (procesos, tallas, tipos) */
+  .opcion {
+    @apply rounded-control border border-borde bg-white font-semibold text-texto transition-colors;
+  }
+
+  .opcion-activa {
+    @apply border-negro bg-negro text-white;
+  }
+
+  .opcion-marcada {
+    @apply border-rojo bg-rojo-suave text-rojo;
+  }
+
+  /* icono dentro de un cuadro de color suave */
+  .icono-caja {
+    @apply flex shrink-0 items-center justify-center rounded-control;
+  }
+
+  /* tarjetas del resumen de inicio: icono arriba en celular, a la izquierda en computador */
+  .tarjeta-resumen {
+    @apply flex min-h-[115px] flex-col items-center justify-center gap-1.5 rounded-tarjeta bg-white px-1.5 py-3 text-center shadow-[0_3px_10px_rgba(0,0,0,0.05),0_1px_2px_rgba(0,0,0,0.03)] transition-shadow hover:shadow-card lg:min-h-0 lg:flex-row lg:justify-start lg:gap-4 lg:px-5 lg:py-5 lg:text-left;
+  }
+
+  .numero-resumen {
+    @apply font-titulo text-[26px] leading-none font-bold tracking-[-0.8px] text-texto lg:text-[32px];
+  }
+}
+
+textarea.campo {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+select.campo {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='none' stroke='%23111111' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.85rem center;
+  padding-right: 2.75rem;
+}
+
+/* espacio para la barra inferior en celular */
+.espacio-barra {
+  padding-bottom: calc(6rem + env(safe-area-inset-bottom));
+}
+
+@media (min-width: 1024px) {
+  .espacio-barra {
+    padding-bottom: 3rem;
+  }
+}
+
+/* evita que un texto largo estire las columnas de las grillas */
+.grid > * {
+  min-width: 0;
+}
+
+/* barra de desplazamiento delgada y oscura en la barra lateral */
+.scroll-oscuro {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+}
+
+.scroll-oscuro::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scroll-oscuro::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+}
+
+.scroll-oscuro::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* entrada suave de cada pantalla y de las tarjetas */
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animar-entrada {
+  animation: aparecer 200ms ease-out both;
+}
+
+@keyframes subir {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+.animar-hoja {
+  animation: subir 200ms ease-out;
+}
+
+@keyframes carga {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+
+.barra-carga {
+  animation: carga 900ms ease-in-out infinite;
+}
+
+/* encabezado de inicio: negro predominante y rojo oscuro detras de la camiseta */
+.fondo-inicio {
+  background-color: #0B0B0B;
+  background-image:
+    radial-gradient(65% 95% at 86% 48%, rgba(144, 0, 9, 0.62) 0%, rgba(90, 0, 6, 0.38) 38%, rgba(11, 11, 11, 0) 72%),
+    radial-gradient(55% 70% at 0% 0%, rgba(144, 0, 9, 0.16) 0%, rgba(11, 11, 11, 0) 60%),
+    linear-gradient(180deg, #121214 0%, #0B0B0B 100%);
+}
+
+/* textura de puntos muy suave, solo hacia la derecha */
+.puntos-suaves {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1.3px);
+  background-size: 9px 9px;
+  -webkit-mask-image: linear-gradient(to left, #000 0%, transparent 65%);
+  mask-image: linear-gradient(to left, #000 0%, transparent 65%);
+}
+
+/* la camiseta se funde por la izquierda y por abajo con el fondo */
+.camiseta-integrada {
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 28%), linear-gradient(to bottom, #000 48%, transparent 88%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent 0%, #000 28%), linear-gradient(to bottom, #000 48%, transparent 88%);
+  mask-composite: intersect;
+}
+
+/* fondo de la marca hecho con css: rojo intenso, rojo oscuro y negro */
+.fondo-marca {
+  background-color: #0B0B0B;
+  background-image:
+    linear-gradient(118deg, transparent 52%, rgba(225, 6, 19, 0.26) 62%, transparent 72%),
+    radial-gradient(130% 110% at 0% 0%, #E10613 0%, #B3000A 30%, #900009 52%, #2A0003 78%, #0B0B0B 100%);
+}
+
+/* banner de escritorio: negro a la izquierda y rojo hacia la camiseta */
+.fondo-marca-ancho {
+  background-color: #0B0B0B;
+  background-image:
+    radial-gradient(60% 140% at 88% 40%, rgba(225, 6, 19, 0.85) 0%, rgba(144, 0, 9, 0.72) 35%, rgba(11, 11, 11, 0) 70%),
+    linear-gradient(112deg, transparent 58%, rgba(225, 6, 19, 0.3) 66%, transparent 74%),
+    linear-gradient(90deg, #0B0B0B 0%, #0B0B0B 40%, #3A0004 70%, #900009 100%);
+}
+
+/* la camiseta se desvanece abajo para que no se note el corte */
+.camiseta-fundida {
+  -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent 96%);
+  mask-image: linear-gradient(to bottom, #000 62%, transparent 96%);
+}
+
+.camiseta-fundida-lado {
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 22%), linear-gradient(to bottom, #000 70%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent 0%, #000 22%), linear-gradient(to bottom, #000 70%, transparent 100%);
+  mask-composite: intersect;
+}
+
+/* separacion diagonal entre el encabezado y el contenido */
+.corte-diagonal {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 34px), 0 100%);
+}
+
+/* respeta a quien pidio menos movimiento en su dispositivo */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animar-entrada,
+  .animar-hoja,
+  .barra-carga {
+    animation: none;
+  }
+}
